@@ -48,7 +48,7 @@ function block_embed_node_view_alter(&$build) {
     $body = $build['body'][0]['#markup'];
     $embed = '<div class="block-embed">' . $content . '</div>';
     $build['body'][0]['#markup'] = block_embed_embed($body, $embed, $position);
-    $path = backdrop_get_path('module', 'block_embed') . '/css/block_embed.css';
+    $path = backdrop_get_path('module', 'block_embed') . '/css/block-embed.css';
     backdrop_add_css($path);
   }
 }
