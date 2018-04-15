@@ -1,0 +1,137 @@
+<?php
+/**
+ * Allows blocks to be embedded into content.
+ */
+
+/**
+ * Implements hook_config_info().
+ */
+function block_embed_config_info() {
+  $prefixes['block_embed.settings'] = array(
+    'label' => t('Block Embed Settings'),
+    'group' => t('Configuration'),
+  );
+  return $prefixes;
+}
+
+/**
+ * Implements hook_config_info().
+ */
+function block_embed_menu() {
+  $items['admin/structure/block/embed'] = array(
+    'title' => 'Block embed settings',
+    'description' => 'Configure block embed content types and position.',
+    'page callback' => 'backdrop_get_form',
+    'page arguments' => array('block_embed_settings'),
+    'access arguments' => array('access content'),
+    'file' => 'block_embed.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 9,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_node_view_alter().
+ * - Places ads after the Nth paragraph of content.
+ */
+function block_embed_node_view_alter(&$build) {
+  $config = config('block_embed.settings');
+  $types = $config->get('node_types');
+  $position = $config->get('position');
+  $block = $config->get('block');
+  $content = block_embed_get_embed_content($block);
+
+  if (!empty($content) && in_array($build['#bundle'], $types) && $build['#view_mode'] == 'full') {
+    // Get the node body.
+    $body = $build['body'][0]['#markup'];
+    $embed = '<div class="block-embed">' . $content . '</div>';
+    $build['body'][0]['#markup'] = block_embed_embed($body, $embed, $position);
+    $path = backdrop_get_path('module', 'block_embed') . '/css/block_embed.css';
+    backdrop_add_css($path);
+  }
+}
+
+/**
+ * Helper function: Convert key from allowed blocks into rendered block output.
+ */
+function block_embed_get_embed_content($block_key) {
+  $output = NULL;
+  if (substr($block_key, 0, 13) == 'block.custom.') {
+    if ($content = config_get($block_key, 'body')) {
+      $output = check_markup($content['value'], $content['format']);
+    }
+  }
+  elseif (substr($block_key, 0, 6) == 'views.') {
+    $delta = substr($block_key, 6);
+    $parts = explode('-', $delta);
+    $name = $parts[0];
+    $display = $parts[1];
+    $output = views_embed_view($name, $display);
+  }
+  else {
+    $output = module_invoke_all('block_embed_output', $block_key, $output);
+  }
+
+  return $output;
+}
+
+/**
+ * Helper function: Automatically embed advertisement into content.
+ *
+ * @param $text
+ *   The text in which the ad should be embedded.
+ * @param $ad
+ *   The ad to embed into the content.
+ * @param $count
+ *   The number of paragraphs to embed the ad after. Zero will place the ad
+ *   before the content. Negative one will place the ad after the content.
+ * @param $force
+ *   If set to true the ad will be displayed even if there is not enough
+ *   paragraphs to meet the assigned $count.
+ *
+ * @return $text
+ *   The paragraph with ad inserted.
+ *
+ * Credit: This code has been reworked from the Drupal 6 ad_embed module.
+ */
+function block_embed_embed($text, $ad, $count = 2, $force = FALSE) {
+  if (!$text) {
+    return;
+  }
+
+  if ($count == 0) {
+    $text = $ad . $text;
+  }
+  else if ($count == -1) {
+    $text = $text . $ad;
+  }
+  else {
+    // First, remove all the EOL and TAB markers.
+    $text = str_replace(array("\n", "\t", "\r"), '', $text);
+
+    // Search for closing paragraph tags.
+    $paragraph = 0;
+    $html_pos = 0;
+    while ($html_pos !== FALSE) {
+      $html_pos = strpos($text, "</p>", $html_pos + 1);
+      if ($html_pos) {
+        $paragraph++;
+        if ($paragraph == $count) {
+          $part1 = substr($text, 0, $html_pos + 4);
+          $part2 = substr($text, $html_pos + 4, strlen($text));
+          $text = $part1 . $ad . $part2;
+          break;
+        }
+      }
+    }
+  }
+
+  // Not enough paragraphs to display ad, unless forced.
+  if (($paragraph < $count) && $force) {
+    $text = $text . $ad;
+  }
+
+  return $text;
+}

@@ -1,0 +1,13 @@
+/** CSS for embedding Ads **/
+div.block-embed {
+  background-color: #F7F7F7;
+  padding: 10px 15px;
+}
+div.block-embed.align-left {
+  float: left;
+  margin: 0 15px 5px 0;
+}
+div.block-embed.align-right {
+  float: right;
+  margin: 0 0 5px 15px;
+}

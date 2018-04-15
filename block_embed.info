@@ -1,0 +1,6 @@
+type = module
+name = Block Embed
+description = Allows blocks to be embedded into content.
+backdrop = 1.x
+
+configure = admin/structure/block/embed
