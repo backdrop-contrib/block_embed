@@ -38,12 +38,14 @@ function block_embed_menu() {
  */
 function block_embed_node_view_alter(&$build) {
   $config = config('block_embed.settings');
-  $types = $config->get('node_types');
+  $types = array_values($config->get('node_types'));
   $position = $config->get('position');
   $block = $config->get('block');
   $content = block_embed_get_embed_content($block);
 
-  if (!empty($content) && in_array($build['#bundle'], $types) && $build['#view_mode'] == 'full') {
+  $allowed = in_array($build['#bundle'], $types, TRUE);
+
+  if ($allowed && !empty($content) && $build['#view_mode'] == 'full') {
     // Get the node body.
     $body = $build['body'][0]['#markup'];
     $embed = '<div class="block-embed">' . $content . '</div>';
