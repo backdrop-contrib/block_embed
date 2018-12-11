@@ -73,7 +73,8 @@ function block_embed_get_embed_content($block_key) {
     $output = views_embed_view($name, $display);
   }
   else {
-    $output = module_invoke_all('block_embed_output', $block_key, $output);
+    $block = module_invoke_all('block_embed_output', $block_key);
+    $output = $block['content'];
   }
 
   return $output;
