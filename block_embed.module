@@ -45,7 +45,7 @@ function block_embed_node_view_alter(&$build) {
 
   $allowed = in_array($build['#bundle'], $types, TRUE);
 
-  if ($allowed && !empty($content) && $build['#view_mode'] == 'full') {
+  if ($allowed && !empty($content) && $build['#view_mode'] == 'full' && array_key_exists('body', $build)) {
     // Get the node body.
     $body = $build['body'][0]['#markup'];
     $embed = '<div class="block-embed">' . $content . '</div>';
