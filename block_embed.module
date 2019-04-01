@@ -22,7 +22,7 @@ function block_embed_menu() {
     'title' => 'Block embed settings',
     'description' => 'Configure block embed content types and position.',
     'page callback' => 'backdrop_get_form',
-    'page arguments' => array('block_embed_settings'),
+    'page arguments' => array('administer block embed'),
     'access arguments' => array('access content'),
     'file' => 'block_embed.admin.inc',
     'type' => MENU_LOCAL_TASK,
@@ -30,6 +30,18 @@ function block_embed_menu() {
   );
 
   return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function block_embed_permission() {
+  return array(
+    'administer block embed' =>  array(
+      'title' => t('Administer block embed'),
+      'description' => t('Configure settings for embedding blocks into content'),
+    ),
+  );
 }
 
 /**
